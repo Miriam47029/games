@@ -27,28 +27,28 @@ export const crearUsuario = async(req,res) =>{
 	}
 }
 
-export const login = async(req,res) =>{
-	try {
-		const {correo,password} = req.body
-		var validacion = validar('nombre',correo,password)
-		if (validacion == '') {
-			let info = await UsuarioModel.findOne({correo:correo})
-			if (info.length == 0 || !(await bcryptjs.compare(password,info.password))) {
-				return res.status(404).json({status:false,errors:['Usuario no existe']})
-			}
-			const token = Jwt.sign({id:info._id},JWT_SECRET,{
-				expiresIn: '604800'
-			})
-			const usuario = {id:info._id,nombre:info.nombre,correo:info.correo,token:token}
-			return res.status(200).json({status:true,data:usuario,message:'Accesso Correcto'})
-		}
-		else{
-			return res.status(400).json({status:false,message:validacion})
-		}
-	} catch (error) {
-		return res.status(500).json({ status:false, message:[error.message] })
-	}
-}
+export const login = async(req, res) => {
+    try {
+        const {correo, password} = req.body;
+        var validacion = validar('nombre', correo, password);  // Asegúrate de que 'nombre' debe estar aquí o si es un error.
+        if (validacion.length === 0) {  // Cambio de 'validacion == '' a 'validacion.length === 0'
+            let info = await UsuarioModel.findOne({correo: correo});
+            if (!info || !(await bcryptjs.compare(password, info.password))) {  // Cambio aquí para comprobar si 'info' es null
+                return res.status(404).json({status: false, errors: ['Usuario no existe o contraseña incorrecta']});
+            }
+            const token = Jwt.sign({id: info._id}, JWT_SECRET, {
+                expiresIn: '604800'  // Asegurarse de que JWT_EXPIRES tiene el valor correcto
+            });
+            const usuario = {id: info._id, nombre: info.nombre, correo: info.correo, token: token};
+            return res.status(200).json({status: true, data: usuario, message: 'Acceso Correcto'});
+        } else {
+            return res.status(400).json({status: false, message: validacion});
+        }
+    } catch (error) {
+        return res.status(500).json({status: false, message: [error.message]});
+    }
+};
+
 
 const validar = (nombre,correo,password) => {
 	var errors =[]
